@@ -1,0 +1,4 @@
+﻿  main.cpp
+c:\users\goutham\documents\github\project-evelyn\main\dalhurst valley\dalhurst valley\common.h(16): warning C4091: 'extern ': ignored on left of 'GameStates' when no variable is declared
+  Dalhurst Valley.vcxproj -> C:\Users\Goutham\Documents\GitHub\project-evelyn\main\Dalhurst Valley\Debug\Dalhurst Valley.exe
+  Dalhurst Valley.vcxproj -> C:\Users\Goutham\Documents\GitHub\project-evelyn\main\Dalhurst Valley\Debug\Dalhurst Valley.pdb (Full PDB)
