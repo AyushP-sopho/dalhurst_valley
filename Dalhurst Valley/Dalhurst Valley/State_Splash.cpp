@@ -1,22 +1,51 @@
 #include <SFML\Graphics.hpp>
 #include "State_Splash.h"
+#include <SFML/Audio.hpp>
 #include "common.h"
-#include "Menu.h"
+#include "Menu3.h"
+#include "Menu2.h"
 #include <iostream>
 
 
 State_Splash::State_Splash()
 {
-	menu = new Menu(900, 400, 500);
 
-	texLogo.loadFromFile("assets/images/logo-600x300.jpg");
+	music.openFromFile("assets/sounds/splash_screen_cut.ogg");
+	music.setVolume(20);
+	music.setLoop(true);
+
+	viewer = new StaticViewer(sf::Vector2f(960, 540), sf::Vector2f(1920, 1080));
+
+
+	hero = new Hero();
+
+	hud = new HUD();
+
+	menu = new Menu3(880, 540, 400, "PLAY", "ABOUT", "EXIT");
+	quitMenu = new Menu2(900, 280, 300, "YES", "NO");
+
+
+	displayAbout = false;
+	displayPlay = false;
+	displayQuit = false;
+
+	texLogo.loadFromFile("assets/images/logo.png");
 
 	sprLogo.setTexture(texLogo);
-	sprLogo.setPosition(660, 150);
+	sprLogo.setPosition(560, 150);
 
-	texBackground[0].loadFromFile("assets/images/test_bg_1.jpg");
-	texBackground[1].loadFromFile("assets/images/test_bg_2.jpg");
-	texBackground[2].loadFromFile("assets/images/test_bg_3.jpg");
+	texAbout.loadFromFile("assets/images/about.png");
+	sprAbout.setTexture(texAbout);
+
+	texQuit.loadFromFile("assets/images/quit.png");
+	sprQuit.setTexture(texQuit);
+
+	texPlay.loadFromFile("assets/images/play.png");
+	sprPlay.setTexture(texPlay);
+
+	texBackground[0].loadFromFile("assets/images/splash_1.jpg");
+	texBackground[1].loadFromFile("assets/images/splash_2.jpg");
+	texBackground[2].loadFromFile("assets/images/splash_3.jpg");
 
 	sprBackground[0].setTexture(texBackground[0]);
 	sprBackground[1].setTexture(texBackground[1]);
@@ -26,6 +55,9 @@ State_Splash::State_Splash()
 	alpha1 = 0;
 	alpha2 = 0;
 
+	font.loadFromFile("assets/fonts/Sansation_Bold.ttf");
+	name.setFont(font);
+	name.setCharacterSize(85);
 }
 
 
@@ -36,49 +68,141 @@ State_Splash::~State_Splash()
 
 void State_Splash::handle_events()
 {
-	sf::Event event;
 
-	while (window.pollEvent(event))
+	if (!displayAbout && !displayQuit && !displayPlay)
 	{
-		switch (event.type)
+		sf::Event eventSplash;
+		while (window.pollEvent(eventSplash))
 		{
-		case sf::Event::Closed:
-			window.close();
-			break;
-		case sf::Event::KeyPressed:
-			switch (event.key.code) {
-			case sf::Keyboard::Up:
-				menu->MoveUp();
+			switch (eventSplash.type)
+			{
+			case sf::Event::Closed:
+				window.close();
 				break;
-			case sf::Keyboard::Down:
-				menu->MoveDown();
-				break;
-			case sf::Keyboard::Return:
-				switch (menu->getPressedItem()) {
-				case 0:
-					set_next_state(LEVEL_0);
+			case sf::Event::KeyPressed:
+				switch (eventSplash.key.code)
+				{
+				case sf::Keyboard::Up:
+					menu->MoveUp();
 					break;
-				case 1:
-					set_next_state(STATE_ABOUT);
+				case sf::Keyboard::Down:
+					menu->MoveDown();
 					break;
-				case 2:
-					window.close();
+				case sf::Keyboard::Return:
+					switch (menu->getPressedItem())
+					{
+					case 0:
+						displayPlay = true;
+						break;
+					case 1:
+						displayAbout = true;
+						break;
+					case 2:
+						displayQuit = true;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	if (displayAbout)
+	{
+		sf::Event eventAbout;
+		while (window.pollEvent(eventAbout))
+		{
+			switch (eventAbout.type)
+			{
+			case sf::Event::KeyPressed:
+				switch (eventAbout.key.code)
+				{
+				case sf::Keyboard::Space:
+					displayAbout = false;
 					break;
 				}
 			}
 		}
 	}
+
+	if (displayQuit)
+	{
+		sf::Event eventQuit;
+		while (window.pollEvent(eventQuit))
+		{
+			switch (eventQuit.type)
+			{
+			case sf::Event::KeyPressed:
+				switch (eventQuit.key.code)
+				{
+				case sf::Keyboard::Up:
+					quitMenu->MoveUp();
+					break;
+				case sf::Keyboard::Down:
+					quitMenu->MoveDown();
+					break;
+				case sf::Keyboard::Return:
+					switch (quitMenu->getPressedItem())
+					{
+					case 0:
+						exit_game();
+						break;
+					case 1:
+						displayQuit = false;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	if (displayPlay)
+	{
+		sf::Event eventPlay;
+		while (window.pollEvent(eventPlay))
+		{
+			switch (eventPlay.type)
+			{
+			case sf::Event::TextEntered:
+				if (eventPlay.text.unicode != 8)
+					input += (char)eventPlay.text.unicode;
+				else
+					input = input.substr(0, input.length() - 1);
+			case sf::Event::KeyPressed:
+				switch (eventPlay.key.code)
+				{
+				case sf::Keyboard::Escape:
+					displayPlay = false;
+					break;
+				case sf::Keyboard::Return:
+					hero->setName(input);
+					set_next_next_state(LEVEL_1);
+					break;
+				}
+			}
+		}
+	}
+
 }
+
+void State_Splash::init_state()
+{
+	if (initState)
+	{
+		music.play();
+		clock.restart();
+		viewer->setView();
+		initState = false;
+	}
+}
+
 
 void State_Splash::logic()
 {
-	//No logic in state
+
 }
 
 void State_Splash::render()
 {
-
-
 
 	sf::Time time = clock.getElapsedTime();
 	sprBackground[i].setColor(sf::Color(255, 255, 255, 255));
@@ -109,4 +233,23 @@ void State_Splash::render()
 
 	menu->draw(window);
 
+	if (displayAbout)
+		window.draw(sprAbout);
+
+	if (displayQuit)
+	{
+		window.draw(sprQuit);
+		quitMenu->draw(window);
+	}
+
+	if (displayPlay)
+	{
+		name.setString(input);
+		sf::FloatRect txtBounds = name.getLocalBounds();
+		name.setPosition(960 - txtBounds.width / 2, 540 - txtBounds.height / 2);
+		window.draw(sprPlay);
+		window.draw(name);
+	}
+
 }
+

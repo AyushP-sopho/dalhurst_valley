@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <iostream>
 #include "State_Intro.h"
 #include "common.h"
@@ -7,7 +8,12 @@
 
 State_Intro::State_Intro()
 {
-	font.loadFromFile("assets/fonts/Comfortaa_Bold.ttf");
+	music.openFromFile("assets/sounds/splash_screen.ogg");
+	music.setVolume(20);
+
+	viewer = new StaticViewer(sf::Vector2f(960, 540), sf::Vector2f(1920, 1080));
+
+	font.loadFromFile("assets/fonts/Sansation_Bold.ttf");
 
 	txtCourse.setFont(font);
 	txtCourse.setString("CS2433: Principles of Programming Languages II");
@@ -15,12 +21,12 @@ State_Intro::State_Intro()
 	sf::FloatRect txtBounds = txtCourse.getLocalBounds();
 	txtCourse.setPosition(960 - txtBounds.width / 2, 540 - txtBounds.height / 2);
 
-	texLogo.loadFromFile("assets/images/logo-600x300.jpg");
+	texLogo.loadFromFile("assets/images/logo.png");
 
 	sprLogo.setTexture(texLogo);
-	sprLogo.setPosition(660, 390);
+	sprLogo.setPosition(560, 390);
 
-	texBackground.loadFromFile("assets/images/test_bg_1.jpg");
+	texBackground.loadFromFile("assets/images/splash_1.jpg");
 
 	sprBackground.setTexture(texBackground);
 
@@ -30,6 +36,15 @@ State_Intro::State_Intro()
 State_Intro::~State_Intro()
 {
 
+}
+
+void State_Intro::init_state()
+{
+	if (initState)
+	{
+		viewer->setView();
+		initState = false;
+	}
 }
 
 void State_Intro::handle_events()
@@ -47,7 +62,7 @@ void State_Intro::handle_events()
 			switch (event.key.code)
 			{
 			case sf::Keyboard::Space:
-				set_next_state(STATE_SPLASH);
+				set_next_next_state(LEVEL_0);
 			}
 
 		}
@@ -62,6 +77,14 @@ void State_Intro::logic()
 void State_Intro::render()
 {
 	sf::Time time = clock.getElapsedTime();
+
+	sf::Time musicTime = musicClock.getElapsedTime();
+
+	if (musicTime.asSeconds() > 4)
+	{
+		music.play();
+		musicClock.restart().asSeconds();
+	}
 
 	int alpha = 0;
 	if (time.asSeconds() > 0.5 && time.asSeconds() <= 1.5)
@@ -91,7 +114,7 @@ void State_Intro::render()
 
 	if (time.asSeconds() > 5 && time.asSeconds() <= 6.5) {
 		float pos_y = 390 - 240 * (time.asSeconds() - 5) / 1.5;
-		sprLogo.setPosition(660, pos_y);
+		sprLogo.setPosition(560, pos_y);
 		window.draw(sprLogo);
 	}
 
@@ -107,14 +130,15 @@ void State_Intro::render()
 
 
 
-	if (time.asSeconds() > 7.5)
+	if (time.asSeconds() > 7)
 	{
 		sprBackground.setColor(sf::Color(255, 255, 255, 255));
 		window.draw(sprBackground);
-		set_next_state(STATE_SPLASH);
+		set_next_next_state(LEVEL_0);
 
 	}
 	if (time.asSeconds() > 6.5) {
+		sprLogo.setPosition(560, 150);
 		window.draw(sprLogo);
 	}
 

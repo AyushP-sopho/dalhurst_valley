@@ -14,6 +14,7 @@ FrameRate::FrameRate()
 	txtFrate.setFont(font);
 	txtFrate.setCharacterSize(15);
 	txtFrate.setColor(sf::Color(255, 255, 255, 150));
+	txtFrate.setCharacterSize(25);
 
 	display_frate = 0;
 }
@@ -29,6 +30,7 @@ void FrameRate::drawFrameRate()
 	ss.precision(4);
 	ss << display_frate;
 	txtFrate.setString("Frame Rate: " + ss.str() + " FPS");
+	txtFrate.setPosition(sf::Vector2f(window.mapPixelToCoords(sf::Vector2i(0, 0))));
 	window.draw(txtFrate);
 
 }
